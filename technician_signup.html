@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/signup.css">
+    <title>Technician Signup</title>
+</head>
+<body>
+    <form action="signup_handler.php" method="POST">
+        <h2>Technician Signup</h2>
+        <input type="hidden" name="role" value="technician">
+        <input type="text" name="userId" placeholder="Technician ID" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <input type="text" name="place" placeholder="Place" required>
+        <button type="submit">Sign Up</button>
+    </form>
+</body>
+</html>

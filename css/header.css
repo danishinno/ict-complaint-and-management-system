@@ -1,0 +1,63 @@
+.Main-header {
+    background-color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    padding: 10px 0;
+}
+
+.Main-header nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.Main-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.Main-header .logo h2 {
+    font-size: 20px;
+    color: #333;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.Main-header .nav-menu ul {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    margin: 0;
+    padding: 0;
+}
+
+.Main-header .nav-menu ul li a {
+    text-decoration: none;
+    color: #555;
+    font-weight: 600;
+    font-size: 16px;
+    transition: color 0.3s ease;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+.Main-header .nav-menu ul li a:hover {
+    color: #007BFF;
+    background-color: #f0f7ff;
+}
+
+.Main-header .nav-menu .logout-btn {
+    color: #dc3545 !important;
+}
+
+.Main-header .nav-menu .logout-btn:hover {
+    color: #fff !important;
+    background-color: #dc3545 !important;
+}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css-pro/login.css">
+    <title>Login</title>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <form id="loginForm" method="POST" action="login.php">
+            <input type="text" name="userId" id="userId" placeholder="ID" required>
+            <input type="password" name="password" id="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+            <p>Not signed up? Click of the button below!</p>
+        </form>
+
+        <!-- Role Selection -->
+        <div class="role-selection">
+            <button onclick="redirectToSignup('student')">Student</button>
+            <button onclick="redirectToSignup('lecturer')">Lecturer</button>
+            <button onclick="redirectToSignup('technician')">Technician</button>
+            <button onclick="redirectToSignup('admin')">Admin</button>
+        </div>
+    </div>
+
+    <script>
+        // Redirect to specific signup pages based on role
+        function redirectToSignup(role) {
+            const signupPage = `${role}_signup.html`;
+            window.location.href = signupPage; 
+        }
+    </script>
+</body>
+</html>
