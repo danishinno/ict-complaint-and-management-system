@@ -1,11 +1,6 @@
 {
   "name": "PHP & MySQL (ICMCS)",
   "image": "mcr.microsoft.com/devcontainers/php:8.2",
-  "features": {
-    "ghcr.io/devcontainers/features/mysql:1": {
-      "version": "latest"
-    }
-  },
   "forwardPorts": [8080, 3306],
   "portsAttributes": {
     "8080": {
@@ -17,7 +12,7 @@
       "onAutoForward": "ignore"
     }
   },
-  "postCreateCommand": "sudo service mysql start || true; sudo rm -rf /var/www/html || true; sudo ln -sf /workspaces/ict-complaint-and-management-system /var/www/html",
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y mariadb-server && sudo service mariadb start && (sudo mysql -e \"CREATE USER IF NOT EXISTS 'root'@'127.0.0.1' IDENTIFIED BY ''; GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' WITH GRANT OPTION; FLUSH PRIVILEGES;\" || true) && (sudo rm -rf /var/www/html || true) && (sudo ln -sf /workspaces/ict-complaint-and-management-system /var/www/html || true)",
   "customizations": {
     "vscode": {
       "settings": {
