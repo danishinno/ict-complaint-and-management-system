@@ -5,10 +5,17 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'technician') {
     exit();
 }
 include 'db_connect.php';
+
+/** @var PDO $conn */
+if (!isset($conn) || !($conn instanceof PDO)) {
+    throw new RuntimeException('Database connection is not available.');
+}
+
 include 'header.php';
 
 // Fetch all complaints
-$result = $conn->query("SELECT * FROM complaints ORDER BY created_at DESC");
+$stmt = $conn->query("SELECT * FROM complaints ORDER BY created_at DESC");
+$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <link rel="stylesheet" href="css/dashboard.css">
@@ -28,7 +35,7 @@ $result = $conn->query("SELECT * FROM complaints ORDER BY created_at DESC");
             </div>
         <?php endif; ?>
 
-        <?php if ($result && $result->num_rows > 0): ?>
+        <?php if (count($result) > 0): ?>
             <table class="data-table">
                 <thead>
                     <tr>
@@ -44,7 +51,7 @@ $result = $conn->query("SELECT * FROM complaints ORDER BY created_at DESC");
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($row = $result->fetch_assoc()): ?>
+                    <?php foreach ($result as $row): ?>
                         <tr>
                             <td>#<?php echo $row['id']; ?></td>
                             <td><?php echo htmlspecialchars($row['user_id'] ?? 'Guest'); ?></td>
@@ -75,7 +82,7 @@ $result = $conn->query("SELECT * FROM complaints ORDER BY created_at DESC");
                                 </form>
                             </td>
                         </tr>
-                    <?php endwhile; ?>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         <?php else: ?>

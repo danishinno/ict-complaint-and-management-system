@@ -1,80 +1,38 @@
 <?php
-$dbname = "complaint_management"; 
+$dbFile = __DIR__ . '/complaint_management.sqlite';
 
-// List of common local MySQL configurations to try (using 127.0.0.1 forces TCP/IP to respect the port number on macOS)
-$configs = [
-    ['host' => '127.0.0.1', 'port' => 88, 'user' => 'root', 'pass' => 'abc123'],   // User's custom port via TCP
-    ['host' => 'localhost', 'port' => null, 'user' => 'root', 'pass' => 'abc123'], // User's password via socket
-    ['host' => '127.0.0.1', 'port' => 3306, 'user' => 'root', 'pass' => 'abc123'], // User's password via default TCP
-    ['host' => '127.0.0.1', 'port' => 8889, 'user' => 'root', 'pass' => 'root'],   // MAMP default TCP
-    ['host' => '127.0.0.1', 'port' => 3306, 'user' => 'root', 'pass' => 'root'],   // MAMP alternative TCP
-    ['host' => '127.0.0.1', 'port' => 3306, 'user' => 'root', 'pass' => ''],       // XAMPP/WAMP default TCP
-    ['host' => 'localhost', 'port' => null, 'user' => 'root', 'pass' => ''],       // General socket default
-    ['host' => '127.0.0.1', 'port' => null, 'user' => 'root', 'pass' => '']
-];
-
-$conn = null;
-$connected = false;
-$errors = [];
-
-foreach ($configs as $cfg) {
-    if ($cfg['port']) {
-        $conn = @new mysqli($cfg['host'], $cfg['user'], $cfg['pass'], "", $cfg['port']);
-    } else {
-        $conn = @new mysqli($cfg['host'], $cfg['user'], $cfg['pass']);
-    }
-
-    if ($conn && !$conn->connect_error) {
-        $connected = true;
-        break;
-    } else {
-        $errors[] = "Host {$cfg['host']}:" . ($cfg['port'] ?? 'default') . " user={$cfg['user']} - " . ($conn->connect_error ?? 'Connection failed');
-    }
+try {
+    $conn = new PDO('sqlite:' . $dbFile);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $conn->exec('PRAGMA foreign_keys = ON');
+} catch (PDOException $e) {
+    die('Database connection failed: ' . htmlspecialchars($e->getMessage()));
 }
 
-if (!$connected) {
-    die("Database Connection failed. Tried multiple local configurations:<br><br>" . implode("<br>", $errors));
-}
-
-// Create database if not exists
-$sql_db = "CREATE DATABASE IF NOT EXISTS `$dbname`";
-if ($conn->query($sql_db) !== TRUE) {
-    die("Error creating database: " . $conn->error);
-}
-
-// Select database
-$conn->select_db($dbname);
-
-// Create users table
-$sql_users = "CREATE TABLE IF NOT EXISTS users (
-    user_id VARCHAR(50) PRIMARY KEY,
-    password VARCHAR(255) NOT NULL,
-    role VARCHAR(20) NOT NULL,
+$sqlUsers = "CREATE TABLE IF NOT EXISTS users (
+    user_id TEXT PRIMARY KEY,
+    password TEXT NOT NULL,
+    role TEXT NOT NULL,
     additional_info TEXT DEFAULT NULL
 )";
-if ($conn->query($sql_users) !== TRUE) {
-    die("Error creating users table: " . $conn->error);
-}
+$conn->exec($sqlUsers);
 
-// Create complaints table
-$sql_complaints = "CREATE TABLE IF NOT EXISTS complaints (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id VARCHAR(50) DEFAULT NULL,
-    category VARCHAR(100) NOT NULL,
-    location VARCHAR(255) NOT NULL,
+$sqlComplaints = "CREATE TABLE IF NOT EXISTS complaints (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT DEFAULT NULL,
+    category TEXT NOT NULL,
+    location TEXT NOT NULL,
     description TEXT NOT NULL,
-    image VARCHAR(255) DEFAULT NULL,
-    status VARCHAR(20) DEFAULT 'Unsolved',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    image TEXT DEFAULT NULL,
+    status TEXT DEFAULT 'Unsolved',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )";
-if ($conn->query($sql_complaints) !== TRUE) {
-    die("Error creating complaints table: " . $conn->error);
-}
+$conn->exec($sqlComplaints);
 
-// Seed default admin if none exists
-$admin_check = $conn->query("SELECT * FROM users WHERE role = 'admin'");
-if ($admin_check && $admin_check->num_rows == 0) {
-    $admin_pass = password_hash('admin123', PASSWORD_BCRYPT);
-    $conn->query("INSERT INTO users (user_id, password, role, additional_info) VALUES ('admin', '$admin_pass', 'admin', '{}')");
+$adminCheck = $conn->query("SELECT COUNT(*) FROM users WHERE role = 'admin'");
+if ($adminCheck && $adminCheck->fetchColumn() == 0) {
+    $adminPass = password_hash('admin123', PASSWORD_BCRYPT);
+    $stmt = $conn->prepare("INSERT INTO users (user_id, password, role, additional_info) VALUES (?, ?, ?, ?)");
+    $stmt->execute(['admin', $adminPass, 'admin', '{}']);
 }
 ?>

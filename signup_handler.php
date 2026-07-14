@@ -1,31 +1,38 @@
 <?php
 include 'db_connect.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $userId = mysqli_real_escape_string($conn, $_POST['userId']);
-    $password = password_hash($_POST['password'], PASSWORD_BCRYPT); // Hash password
-    $role = mysqli_real_escape_string($conn, $_POST['role']);
-    
-    // Collect role-specific data
+/** @var PDO $conn */
+if (!isset($conn) || !($conn instanceof PDO)) {
+    throw new RuntimeException('Database connection is not available.');
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $userId = trim($_POST['userId'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $role = trim($_POST['role'] ?? '');
+
+    if ($userId === '' || $password === '' || $role === '') {
+        echo "Please provide an ID, password, and role.";
+        exit();
+    }
+
     $additional_info = [];
     foreach ($_POST as $key => $value) {
-        if (!in_array($key, ['userId', 'password', 'role'])) {
+        if (!in_array($key, ['userId', 'password', 'role'], true)) {
             $additional_info[$key] = $value;
         }
     }
 
     $additional_info_json = json_encode($additional_info);
+    $passwordHash = password_hash($password, PASSWORD_BCRYPT);
 
-    // Insert user into the database
-    $sql = "INSERT INTO users (user_id, password, role, additional_info) VALUES ('$userId', '$password', '$role', '$additional_info_json')";
-
-    if ($conn->query($sql) === TRUE) {
+    try {
+        $stmt = $conn->prepare("INSERT INTO users (user_id, password, role, additional_info) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$userId, $passwordHash, $role, $additional_info_json]);
         header("Location: Login.html");
         exit();
-    } else {
-        echo "Error: " . $conn->error;
+    } catch (PDOException $e) {
+        echo "Error: " . htmlspecialchars($e->getMessage());
     }
-
-    $conn->close();
 }
 ?>

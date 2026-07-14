@@ -5,15 +5,20 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'lecturer') {
     exit();
 }
 include 'db_connect.php';
+
+/** @var PDO $conn */
+if (!isset($conn) || !($conn instanceof PDO)) {
+    throw new RuntimeException('Database connection is not available.');
+}
+
 include 'header.php';
 
 $userId = $_SESSION['user_id'];
 
 // Fetch complaints submitted by this user
 $stmt = $conn->prepare("SELECT * FROM complaints WHERE user_id = ? ORDER BY created_at DESC");
-$stmt->bind_param("s", $userId);
-$stmt->execute();
-$result = $stmt->get_result();
+$stmt->execute([$userId]);
+$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <link rel="stylesheet" href="css/dashboard.css">
@@ -30,7 +35,7 @@ $result = $stmt->get_result();
             <a href="Complaint.php" class="btn-primary">File New Complaint</a>
         </div>
 
-        <?php if ($result->num_rows > 0): ?>
+        <?php if (count($result) > 0): ?>
             <table class="data-table">
                 <thead>
                     <tr>
@@ -44,7 +49,7 @@ $result = $stmt->get_result();
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($row = $result->fetch_assoc()): ?>
+                    <?php foreach ($result as $row): ?>
                         <tr>
                             <td>#<?php echo $row['id']; ?></td>
                             <td><?php echo htmlspecialchars($row['category']); ?></td>
@@ -64,7 +69,7 @@ $result = $stmt->get_result();
                             </td>
                             <td><?php echo $row['created_at']; ?></td>
                         </tr>
-                    <?php endwhile; ?>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         <?php else: ?>

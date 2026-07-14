@@ -5,31 +5,30 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 include 'db_connect.php';
+
+/** @var PDO $conn */
+if (!isset($conn) || !($conn instanceof PDO)) {
+    throw new RuntimeException('Database connection is not available.');
+}
+
 include 'header.php';
 
 // Fetch complaint status counts
-$solved_res = $conn->query("SELECT COUNT(*) as count FROM complaints WHERE status = 'Solved'");
-$solved_count = $solved_res ? $solved_res->fetch_assoc()['count'] : 0;
-
-$in_progress_res = $conn->query("SELECT COUNT(*) as count FROM complaints WHERE status = 'In Progress'");
-$in_progress_count = $in_progress_res ? $in_progress_res->fetch_assoc()['count'] : 0;
-
-$unsolved_res = $conn->query("SELECT COUNT(*) as count FROM complaints WHERE status = 'Unsolved'");
-$unsolved_count = $unsolved_res ? $unsolved_res->fetch_assoc()['count'] : 0;
+$solved_count = (int) $conn->query("SELECT COUNT(*) FROM complaints WHERE status = 'Solved'")->fetchColumn();
+$in_progress_count = (int) $conn->query("SELECT COUNT(*) FROM complaints WHERE status = 'In Progress'")->fetchColumn();
+$unsolved_count = (int) $conn->query("SELECT COUNT(*) FROM complaints WHERE status = 'Unsolved'")->fetchColumn();
 
 // Fetch user traffic / registered count by role
-$user_traffic = $conn->query("SELECT role, COUNT(*) as count FROM users GROUP BY role");
+$user_traffic = $conn->query("SELECT role, COUNT(*) as count FROM users GROUP BY role")->fetchAll(PDO::FETCH_ASSOC);
 $users_by_role = [];
 $total_users = 0;
-if ($user_traffic) {
-    while ($r = $user_traffic->fetch_assoc()) {
-        $users_by_role[$r['role']] = $r['count'];
-        $total_users += $r['count'];
-    }
+foreach ($user_traffic as $r) {
+    $users_by_role[$r['role']] = $r['count'];
+    $total_users += $r['count'];
 }
 
 // Fetch complaint history list
-$complaints_res = $conn->query("SELECT * FROM complaints ORDER BY created_at DESC");
+$complaints_res = $conn->query("SELECT * FROM complaints ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <link rel="stylesheet" href="css/dashboard.css">
@@ -111,7 +110,7 @@ $complaints_res = $conn->query("SELECT * FROM complaints ORDER BY created_at DES
         <div class="complaint-history" style="margin-bottom: 30px;">
             <h3>Complaint History List</h3>
             <div id="complaintHistoryList">
-                <?php if ($complaints_res && $complaints_res->num_rows > 0): ?>
+                <?php if (count($complaints_res) > 0): ?>
                     <table class="data-table" id="complaintsTable">
                         <thead>
                             <tr>
@@ -127,7 +126,7 @@ $complaints_res = $conn->query("SELECT * FROM complaints ORDER BY created_at DES
                             </tr>
                         </thead>
                         <tbody>
-                            <?php while ($row = $complaints_res->fetch_assoc()): ?>
+                            <?php foreach ($complaints_res as $row): ?>
                                 <tr>
                                     <td>#<?php echo $row['id']; ?></td>
                                     <td><?php echo htmlspecialchars($row['user_id'] ?? 'Guest'); ?></td>
@@ -158,7 +157,7 @@ $complaints_res = $conn->query("SELECT * FROM complaints ORDER BY created_at DES
                                         </form>
                                     </td>
                                 </tr>
-                            <?php endwhile; ?>
+                            <?php endforeach; ?>
                         </tbody>
                     </table>
                 <?php else: ?>
