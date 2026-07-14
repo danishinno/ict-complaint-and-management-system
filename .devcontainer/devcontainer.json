@@ -17,7 +17,7 @@
       "onAutoForward": "ignore"
     }
   },
-  "postCreateCommand": "sudo service mysql start && sudo rm -rf /var/www/html && sudo ln -sf /workspaces/icmcs /var/www/html",
+  "postCreateCommand": "sudo service mysql start || true; sudo rm -rf /var/www/html || true; sudo ln -sf /workspaces/ict-complaint-and-management-system /var/www/html",
   "customizations": {
     "vscode": {
       "settings": {
