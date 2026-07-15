@@ -1,78 +1,129 @@
 # 🛠️ Integrated Complaint Management and Centralization System (ICMCS)
 
-Welcome to the **ICMCS** portal. This is a web application designed for students, lecturers, technicians, and administrators to submit, track, and manage ICT-related complaints.
+The **Integrated Complaint Management and Centralization System (ICMCS)** is a web-based platform designed to automate and streamline the process of reporting, tracking, and resolving ICT-related issues within an institution.
+
+It supports four distinct user roles—**Students**, **Lecturers**, **Technicians**, and **Administrators**—offering a specialized experience and workflow for each role.
 
 ---
 
-## 🚀 How to Run the Project
+## 📂 File Structure & Architecture
 
-You can run this project in two ways: in the cloud using **GitHub Codespaces** (no setup required) or locally on your computer using **MAMP/XAMPP**.
+The project is structured as a modular monolithic PHP application. Below is the file structure and the role of each component:
 
-### Method A: Run in the Cloud (GitHub Codespaces) — *Recommended*
-Since the repository is pre-configured with a development container, you can run the entire PHP and MySQL stack in one click:
-1. Go to your GitHub repository: [danishinno/ict-complaint-and-management-system](https://github.com/danishinno/ict-complaint-and-management-system).
-2. Click the green **Code** button, select the **Codespaces** tab, and click **Create codespace on main**.
-3. Wait for the environment to build.
-4. When a popup appears in the bottom-right corner saying **"Active Ports: Port 8080 is forwarded"**, click **Open in Browser** (or visit the link under the **Ports** tab).
-5. Append `/Login.html` to the URL to access the login page.
-6. The database and tables will initialize automatically on your first load!
-
----
-
-### Method B: Run Locally (Mac/Windows)
-To run PHP and MySQL locally, you must use a local server environment like **MAMP** (recommended for macOS) or **XAMPP**.
-
-#### Step 1: Install MAMP or XAMPP
-*   [Download MAMP for Mac](https://www.mamp.info/)
-*   [Download XAMPP](https://www.apachefriends.org/)
-
-#### Step 2: Place files in Server Directory
-Copy the entire `icmcs` project folder to your local server's document root:
-*   **MAMP:** `/Applications/MAMP/htdocs/`
-*   **XAMPP (macOS):** `/Applications/XAMPP/htdocs/` or `/Applications/XAMPP/xamppfiles/htdocs/`
-*   **XAMPP (Windows):** `C:\xampp\htdocs\`
-
-#### Step 3: Start the Servers
-Open your MAMP/XAMPP Control Panel and click **Start Servers**. Make sure both the **Apache Web Server** and **MySQL Database Server** status lights turn green.
-
-#### Step 4: Open in Web Browser
-Do **NOT** double-click the HTML/PHP files directly. Instead, open your browser and navigate to:
-*   **MAMP default:** `http://localhost:8888/icmcs/Login.html`
-*   **XAMPP default:** `http://localhost/icmcs/Login.html`
-
----
-
-## 🔑 Login Credentials
-
-The system initializes with a default administrator account. You can also sign up for student, lecturer, or technician accounts directly from the login page.
-
-| Role | Username / ID | Password |
-| :--- | :--- | :--- |
-| **Administrator** | `admin` | `admin123` |
-| **Others (Student / Lecturer / Tech)** | *Create via Signup button* | *Your choice* |
-
----
-
-## 📋 Features & User Roles
-
-*   **Students & Lecturers:** 
-    *   Register accounts with role-specific details.
-    *   Submit complaints with categories, locations, descriptions, and optional image attachments.
-    *   Track personal complaint statuses (Unsolved, In Progress, Solved) on their custom dashboard.
-*   **Technicians:**
-    *   View all submitted complaints.
-    *   Update complaint statuses (e.g. mark as "In Progress" or "Solved") in real-time.
-*   **Administrators:**
-    *   Monitor dashboard statistics (solved/unsolved counts).
-    *   Monitor user traffic (registered users categorized by role).
-    *   Update complaint statuses.
-    *   Generate print-friendly report summaries.
+```text
+icmcs/
+├── .devcontainer/
+│   └── devcontainer.json    # GitHub Codespaces config (PHP, Apache, MySQL)
+├── css/
+│   ├── complaint.css        # Styles for the complaint submission page
+│   ├── dashboard.css        # Styles for student, lecturer, tech, and admin dashboards
+│   ├── header.css           # Styles for the persistent navigation bar
+│   └── signup.css           # Styles for the registration forms
+├── css-pro/
+│   └── login.css            # Styles for the centralized login interface
+├── images/                  # Graphical assets (logos and dashboard indicators)
+├── README.md                # System documentation
+├── .gitignore               # Excludes system junk files from git
+│
+│   /* DATABASE & SYSTEM CORE */
+├── db_connect.php           # Auto-connecting database layer & table initializer
+├── header.php               # Shared navigation layout with session management
+├── index.php                # Entrypoint router (redirects based on active session)
+├── logout.php               # Destroys active user sessions
+│
+│   /* AUTHENTICATION PATH */
+├── Login.html               # Main login page
+├── login.php                # Validates credentials and routes roles
+├── admin_signup.html        # Signup form for Admins
+├── lecturer_signup.html     # Signup form for Lecturers
+├── student_signup.html      # Signup form for Students
+├── technician_signup.html   # Signup form for Technicians
+├── signup_handler.php       # Processes all registrations and hashes passwords
+│
+│   /* COMPLAINT SYSTEM */
+├── Complaint.php            # Form for submitting new tickets
+├── submit_complaint.php     # Uploads images and stores complaints in DB
+├── Contact.php              # Static support contact information page
+├── update_status.php        # Allows technicians/admins to change complaint status
+│
+│   /* ROLE DASHBOARDS */
+├── student_dashboard.php    # Student ticket tracking dashboard
+├── lecturer_dashboard.php   # Lecturer ticket tracking dashboard
+├── technician_dashboard.php # Complaint list management for technicians
+└── admin_dashboard.php      # Administrative control panel (statistics & reports)
+```
 
 ---
 
-## 🗄️ Database Architecture
-The application runs on a MySQL database named `complaint_management` consisting of two main tables:
-1.  **`users`**: Stores login credentials, roles, and role-specific profile data (in JSON format).
-2.  **`complaints`**: Tracks submitted tickets, categories, locations, image paths, and current status.
+## ⚙️ Core System Design & Workflow
 
-*Note: The database configuration (`db_connect.php`) checks multiple standard port configurations (e.g., MAMP, XAMPP, and Codespaces) to connect automatically without manual editing.*
+```mermaid
+flowchart TD
+    A[Visitor] -->|Access Index| B{Has Active Session?}
+    B -->|Yes| C[Redirect to Role Dashboard]
+    B -->|No| D[Login.html]
+    D -->|Click Signup| E[Role Signup HTML]
+    E -->|Submit Form| F[signup_handler.php]
+    F -->|Insert into DB| D
+    D -->|Submit Credentials| G[login.php]
+    G -->|Success| C
+```
+
+### 1. The Auto-Setup Database Pattern (`db_connect.php`)
+To eliminate manual setup, the database layer checks a sequence of standard local environments (MAMP, XAMPP, and Codespaces) using TCP ports and socket configs. 
+Upon successful connection:
+- It creates the `complaint_management` database if it does not exist.
+- It dynamically initializes the `users` and `complaints` tables.
+- It seeds a default administrator account (`admin` / `admin123`) if the database is empty.
+
+### 2. Flexible Schema Design (`users` Table)
+Different roles require different registration details (e.g., Students need Course/Year; Lecturers need Department; Admins need Privileges). To avoid an over-engineered schema or sparse tables, ICMCS utilizes a **JSON-based additional info column**:
+
+*   **`users` Schema:**
+    *   `user_id` (VARCHAR - Primary Key)
+    *   `password` (VARCHAR - BCRYPT Hashed)
+    *   `role` (VARCHAR - student/lecturer/technician/admin)
+    *   `additional_info` (TEXT - stores role-specific metadata like department, course, or privileges as JSON)
+
+### 3. File Upload & Complaint Lifecycle (`submit_complaint.php`)
+When a user submits a complaint, the backend:
+1. Validates the submission parameters (category, location, description).
+2. Sanitizes input to protect against SQL Injection.
+3. Uploads image attachments to the `uploads/` directory with unique names to prevent overwrites.
+4. Inserts the record into the database with a default status of `Unsolved`.
+
+---
+
+## 👥 Role-Based Workflows
+
+### 👨‍🎓 Students & 👩‍🏫 Lecturers (The Reporters)
+*   **Action:** Can submit complaints and track their personal ticket histories.
+*   **Workflow:**
+```mermaid
+sequenceDiagram
+    Reporter->>Complaint.php: Fills out category, location, details & image
+    Complaint.php->>submit_complaint.php: Submits multipart form data
+    submit_complaint.php->>Database: Inserts record (status: Unsolved)
+    Database->>Reporter Dashboard: Redirects with success banner
+```
+
+### 🔧 Technicians (The Solvers)
+*   **Action:** Can view all submitted complaints in the system.
+*   **Workflow:**
+    *   Technicians monitor the global board on `technician_dashboard.php`.
+    *   They update statuses using inline dropdown select selectors. Changing a status instantly updates the database via `update_status.php`.
+
+### 👑 Administrators (The Managers)
+*   **Action:** Full system monitoring, user monitoring, and reporting.
+*   **Features:**
+    *   **Traffic Panel:** Displays counts of registered users grouped by roles.
+    *   **Interactive Metrics:** Displays total solved, in-progress, and unsolved complaints.
+    *   **Report Generator:** A print function configured via CSS print stylesheets to generate instant clean PDF paper records of active/past complaints.
+
+---
+
+## 🔒 Security Implementations
+
+1.  **Password Encryption:** All passwords are encrypted on registration using BCRYPT (`PASSWORD_BCRYPT`), protecting user credentials in the database.
+2.  **SQL Injection Mitigation:** Inputs are escaped using `mysqli_real_escape_string` or executed using prepared statements (`$conn->prepare`).
+3.  **Session Guard Checks:** Dashboard scripts start with session role validation. If a user tries to access a dashboard that does not match their session role, they are redirected back to `Login.html`.
