@@ -1,6 +1,6 @@
-# 🛠️ Integrated Complaint Management and Centralization System (ICMCS)
+# 🛠️ ICT Complaint Management and Centralization System (ICMCS)
 
-The **Integrated Complaint Management and Centralization System (ICMCS)** is a web-based platform designed to automate and streamline the process of reporting, tracking, and resolving ICT-related issues within an institution.
+The **ICT Complaint Management and Centralization System (ICMCS)** is a web-based platform designed to automate and streamline the process of reporting, tracking, and resolving ICT-related issues within an institution.
 
 It supports four distinct user roles—**Students**, **Lecturers**, **Technicians**, and **Administrators**—offering a specialized experience and workflow for each role.
 
